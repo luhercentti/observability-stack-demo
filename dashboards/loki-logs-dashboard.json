@@ -1,0 +1,317 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "description": "Log line rate over time",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "Logs/sec",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "options": {
+          "legend": {
+            "calcs": ["mean", "max"],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "editorMode": "builder",
+            "expr": "sum by(level) (rate({service=\"demo-python-app\"} | pattern `<_> - <_> - <level> - <message>` | level != `` [5m]))",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Log Rate by Level",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "description": "Counts of error logs",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 5
+                },
+                {
+                  "color": "red",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "10.2.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "editorMode": "builder",
+            "expr": "count_over_time({service=\"demo-python-app\"} |= `error` [5m])",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Error Count (5m)",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "description": "Filter logs by log level",
+        "gridPos": {
+          "h": 12,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "id": 3,
+        "options": {
+          "dedupStrategy": "none",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "editorMode": "builder",
+            "expr": "{service=\"demo-python-app\"} | pattern `<_> - <_> - <level> - <message>` | level = \"${level:raw}\"",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Application Logs by Level",
+        "type": "logs"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "description": "Error logs with context",
+        "gridPos": {
+          "h": 9,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        },
+        "id": 4,
+        "options": {
+          "dedupStrategy": "none",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "editorMode": "builder",
+            "expr": "{service=\"demo-python-app\"} |= `error`",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Error Logs",
+        "type": "logs"
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 38,
+    "style": "dark",
+    "tags": ["loki", "logs"],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": true,
+            "text": "ERROR",
+            "value": "ERROR"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "multi": false,
+          "name": "level",
+          "options": [
+            {
+              "selected": false,
+              "text": "INFO",
+              "value": "INFO"
+            },
+            {
+              "selected": true,
+              "text": "ERROR",
+              "value": "ERROR"
+            },
+            {
+              "selected": false,
+              "text": "WARNING",
+              "value": "WARNING"
+            },
+            {
+              "selected": false,
+              "text": "CRITICAL",
+              "value": "CRITICAL"
+            }
+          ],
+          "query": "INFO,ERROR,WARNING,CRITICAL",
+          "queryValue": "",
+          "skipUrlSync": false,
+          "type": "custom"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Application Logs Dashboard",
+    "uid": "loki-logs",
+    "version": 1,
+    "weekStart": ""
+  }

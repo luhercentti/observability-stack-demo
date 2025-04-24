@@ -26,7 +26,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "",
+      "description": "The number of requests per second by endpoint",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -35,7 +35,7 @@
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "Requests/sec",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -76,7 +76,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -89,8 +89,8 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -121,7 +121,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "",
+      "description": "95th percentile request latency by endpoint",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -130,7 +130,7 @@
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "Seconds",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -154,7 +154,7 @@
               "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "line"
             }
           },
           "mappings": [],
@@ -166,8 +166,12 @@
                 "value": null
               },
               {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
                 "color": "red",
-                "value": 80
+                "value": 0.5
               }
             ]
           },
@@ -184,8 +188,8 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "calcs": ["min", "mean", "max"],
+          "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
         },
@@ -244,7 +248,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 8
       },
@@ -283,13 +287,85 @@
     },
     {
       "datasource": {
-        "type": "tempo",
-        "uid": "tempo"
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.3
+              },
+              {
+                "color": "red",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum(rate(app_request_latency_seconds_bucket{endpoint=\"/slow\"}[5m])) by (le))",
+          "instant": false,
+          "legendFormat": "P95 Slow Endpoint",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Slow Endpoint Latency (p95)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "description": "Shows recent traces from the Python application",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
         "y": 8
       },
       "id": 4,
@@ -300,19 +376,56 @@
             "uid": "tempo"
           },
           "limit": 20,
-          "query": "",
+          "query": "{service.name=\"demo-python-app\"}",
           "queryType": "traceql",
           "refId": "A"
         }
       ],
-      "title": "Traces",
+      "title": "Recent Traces",
       "type": "traces"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "builder",
+          "expr": "{service=\"demo-python-app\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Application Logs",
+      "type": "logs"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": [],
+  "tags": ["python", "application"],
   "templating": {
     "list": []
   },
@@ -323,7 +436,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Python App Dashboard",
-  "uid": "python-app-new",
+  "uid": "python-app",
   "version": 1,
   "weekStart": ""
 }

@@ -1,34 +1,5 @@
-version: '3'
-
 services:
-  python-app:
-    build: .
-    ports:
-      - "5000:5000"
-    depends_on:
-      - otel-collector
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=python-app
-    networks:
-      monitoring:
-        aliases:
-          - python-app
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.94.0
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
-    ports:
-      - "4319:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8889:8889"   # Prometheus metrics endpoint
-    networks:
-      monitoring:
-        aliases:
-          - otel-collector
-
+  # Start these first
   prometheus:
     image: prom/prometheus:v2.48.1
     volumes:
@@ -39,12 +10,38 @@ services:
       monitoring:
         aliases:
           - prometheus
+    # No dependencies - this will start early
 
+  grafana:
+    image: grafana/grafana:10.2.0
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      monitoring:
+        aliases:
+          - grafana
+
+  # Then these services
   loki:
     image: grafana/loki:2.9.3
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki-config.yaml
+    depends_on:
+      - grafana
+      - prometheus
     networks:
       monitoring:
         aliases:
@@ -58,27 +55,46 @@ services:
     ports:
       - "3200:3200"   # Tempo API
       - "4327:4317"   # OTLP gRPC
+    depends_on:
+      - grafana
+      - prometheus
     networks:
       monitoring:
         aliases:
           - tempo
 
-  grafana:
-    image: grafana/grafana:10.2.0
+  # Then the OpenTelemetry collector (since it needs Loki and Tempo)
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.94.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
-      - ./dashboards:/var/lib/grafana/dashboards
-    environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "3000:3000"
+      - "4319:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus metrics endpoint
+    depends_on:
+      - loki
+      - tempo
     networks:
       monitoring:
         aliases:
-          - grafana
+          - otel-collector
 
+  # Finally, your application
+  python-app:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - otel-collector
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=demo-python-app,service.namespace=monitoring-demo
+    networks:
+      monitoring:
+        aliases:
+          - python-app
 networks:
   monitoring:
     driver: bridge

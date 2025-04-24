@@ -1,0 +1,284 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "tempo"
+        },
+        "description": "Service map showing dependencies between services",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "id": 1,
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "limit": 20,
+            "query": "",
+            "queryType": "serviceMap",
+            "refId": "A"
+          }
+        ],
+        "title": "Service Map",
+        "type": "nodeGraph"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "tempo"
+        },
+        "description": "Application spans filtered by specific operations",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "ms"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "legend": {
+            "calcs": ["min", "mean", "max"],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "query": "// Query average durations\n{service.name=\"demo-python-app\"} | by(span.name) | rate | avg_over_time(1m)",
+            "queryType": "traceqlMetrics",
+            "refId": "A"
+          }
+        ],
+        "title": "Span Duration by Operation",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "tempo"
+        },
+        "description": "List view of recent traces from the application",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "id": 3,
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "limit": 20,
+            "query": "{service.name=\"demo-python-app\"}",
+            "queryType": "traceql",
+            "refId": "A"
+          }
+        ],
+        "title": "Recent Traces",
+        "type": "traces"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "tempo"
+        },
+        "description": "Recent error traces from the application",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "id": 4,
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "limit": 20,
+            "query": "{service.name=\"demo-python-app\"} | status = error",
+            "queryType": "traceql",
+            "refId": "A"
+          }
+        ],
+        "title": "Error Traces",
+        "type": "traces"
+      },
+      {
+        "datasource": {
+          "type": "tempo",
+          "uid": "tempo"
+        },
+        "description": "Slow endpoint traces showing detailed spans",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "id": 5,
+        "targets": [
+          {
+            "datasource": {
+              "type": "tempo",
+              "uid": "tempo"
+            },
+            "limit": 10,
+            "query": "{service.name=\"demo-python-app\"} | span.name = \"slow-operation\"",
+            "queryType": "traceql",
+            "refId": "A"
+          }
+        ],
+        "title": "Slow Operation Traces",
+        "type": "traces"
+      },
+      {
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "description": "Logs related to traces with errors",
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "id": 6,
+        "options": {
+          "dedupStrategy": "none",
+          "enableLogDetails": true,
+          "prettifyLogMessage": false,
+          "showCommonLabels": false,
+          "showLabels": false,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": false
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "editorMode": "builder",
+            "expr": "{service=\"demo-python-app\"} |= `error`",
+            "queryType": "range",
+            "refId": "A"
+          }
+        ],
+        "title": "Error Logs (for Trace Correlation)",
+        "type": "logs"
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 38,
+    "style": "dark",
+    "tags": ["tempo", "traces"],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Application Traces Dashboard",
+    "uid": "tempo-traces",
+    "version": 1,
+    "weekStart": ""
+  }

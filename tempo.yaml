@@ -1,4 +1,3 @@
-# tempo.yaml
 server:
   http_listen_port: 3200
 
@@ -7,7 +6,9 @@ distributor:
     otlp:
       protocols:
         grpc:
-          endpoint: 0.0.0.0:4317  # This is internal port, keep as 4317
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
 
 storage:
   trace:
@@ -18,9 +19,16 @@ storage:
       max_workers: 10
       queue_depth: 100
 
-compactor:
-  compaction:
-    block_retention: 1h
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: docker-compose
+  storage:
+    path: /tmp/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
 
 overrides:
   metrics_generator_processors: [service-graphs, span-metrics]
