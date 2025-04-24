@@ -8,8 +8,8 @@ Changed the external port for OpenTelemetry Collector from 4317 to 4319
 Changed the external port for Tempo from 4317 to 4327
 Kept the internal ports the same (4317) so services can communicate inside the Docker network
 
-# Make some requests to your Python app
-# Send a variety of requests over a minute to create graph-worthy data
+Make some requests to your Python app
+Send a variety of requests over a minute to create graph-worthy data
 for i in {1..30}; do
   curl http://localhost:5000/
   sleep 1
@@ -32,19 +32,10 @@ The application has three endpoints:
 /error - Deliberately causes an error to demonstrate error tracking
 
 Check log of each component, go to path where the docker-compose is and:
-# Check OpenTelemetry Collector logs
 docker-compose logs otel-collector
-
-# Check Loki logs
 docker-compose logs loki
-
-# Check Tempo logs
 docker-compose logs tempo
-
-# Check Prometheus logs
 docker-compose logs prometheus
-
-# Check Grafana logs
 docker-compose logs grafana
 
 
