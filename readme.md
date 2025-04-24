@@ -108,14 +108,11 @@ Prometheus stores and allows querying of time-series metrics data
 Loki stores and allows querying of log data
 Tempo stores and allows querying of distributed trace data
 
-
 Grafana:
 
 Connects to all three backends (Prometheus, Loki, Tempo)
 Provides unified visualization and dashboarding
 Enables correlation between metrics, logs, and traces
-
-
 
 Port Mapping and Communication Channels
 
